@@ -5,8 +5,20 @@ namespace App\Http\Controllers;
 use App\Lesson;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Acme\Transformers\LessonTransformer;
 class LessonController extends Controller
 {
+    /**
+    
+    */
+
+    protected $lessonTransformer;
+
+    function __construct(LessonTransformer $lessonTransformer)
+    {
+        $this->lessonTransformer = $lessonTransformer;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -24,7 +36,7 @@ class LessonController extends Controller
 
         $lesson = Lesson::all();
         return response()->json([
-            'data' => $this->transformCollection($lesson)
+            'data' => $this->lessonTransformer->transformCollection($lesson->toArray())
         ], 200);
     }
 
@@ -71,7 +83,7 @@ class LessonController extends Controller
         }
 
          return response()->json([
-            'data' => $this->transform($lesson)
+            'data' => $this->lessonTransformer->transform($lesson)
         ], 200);
     }
 
@@ -107,19 +119,5 @@ class LessonController extends Controller
     public function destroy(lesson $lesson)
     {
         //
-    }
-
-    private function transformCollection($lesson)
-    {
-        return array_map([$this,'transform'] , $lesson->toArray());
-    }
-
-    private function transform($lesson)
-    {
-        return [
-            'title' => $lesson['title'],
-            'body'  => $lesson['body'],
-            'active' => (boolean) $lesson['some_bool']
-        ];
     }
 }
