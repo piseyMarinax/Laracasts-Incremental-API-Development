@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Lesson;
 use Illuminate\Http\Request;
-
+use Symfony\Component\HttpFoundation\Response;
 class LessonController extends Controller
 {
     /**
@@ -14,7 +14,18 @@ class LessonController extends Controller
      */
     public function index()
     {
-        return Lesson::all();
+        // 1. All is bad
+        
+        // 2. No way to attach meta data
+
+        // 3. linking db structure to the API output
+
+        // 4. No way to signal headers/response codes
+
+        $lesson = Lesson::all();
+        return response()->json([
+            'data' => $this->transformCollection($lesson)
+        ], 200);
     }
 
     /**
@@ -44,9 +55,24 @@ class LessonController extends Controller
      * @param  \App\lesson  $lesson
      * @return \Illuminate\Http\Response
      */
-    public function show(lesson $lesson)
+    public function show($id)
     {
-        //
+       
+        $lesson = Lesson::find($id);
+        
+        if(!$lesson)
+        {
+            return response()->json([
+                'error' => [
+                    'message'   => "Lesson does not exit",
+                    'code'      => '404'
+                ]
+            ], 404);
+        }
+
+         return response()->json([
+            'data' => $this->transform($lesson)
+        ], 200);
     }
 
     /**
@@ -81,5 +107,19 @@ class LessonController extends Controller
     public function destroy(lesson $lesson)
     {
         //
+    }
+
+    private function transformCollection($lesson)
+    {
+        return array_map([$this,'transform'] , $lesson->toArray());
+    }
+
+    private function transform($lesson)
+    {
+        return [
+            'title' => $lesson['title'],
+            'body'  => $lesson['body'],
+            'active' => (boolean) $lesson['some_bool']
+        ];
     }
 }
